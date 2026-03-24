@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Compiler Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .test-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-body {
+            padding: 20px;
+        }
+
+        .test-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-query {
+            font-family: 'Courier New', monospace;
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+        }
+
+        .test-all-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.pending {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background: #ffeaa7;
+            color: #856404;
+        }
+
+        .status-badge.running {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .status-badge.passed {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .status-badge.failed {
+            background: #ff7675;
+            color: #d63031;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .summary-item {
+            flex: 1;
+        }
+
+        .summary-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 SQL Compiler Test Suite</h1>
+        <p class="subtitle">Comprehensive testing for DDL, DML, DQL, and other SQL commands</p>
+
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-number" id="total-tests">0</div>
+                <div class="summary-label">Total Tests</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="passed-tests">0</div>
+                <div class="summary-label">Passed</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="failed-tests">0</div>
+                <div class="summary-label">Failed</div>
+            </div>
+        </div>
+
+        <!-- DDL Tests -->
+        <div class="test-section">
+            <div class="test-header">
+                <span>📋 DDL Commands (Data Definition Language)</span>
+                <span class="status-badge pending" id="ddl-status">Pending</span>
+            </div>
+            <div class="test-body">
+                <div class="test-item">
+                    <strong>Test 1: CREATE TABLE</strong>
+                    <div class="test-query">CREATE TABLE test_users (id INT PRIMARY KEY, name VARCHAR(50), email VARCHAR(100));</div>
+                    <button class="test-button" onclick="runTest('ddl', 0)">Run Test</button>
+                    <div class="result" id="ddl-result-0"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 2: ALTER TABLE (ADD COLUMN)</strong>
+                    <div class="test-query">ALTER TABLE test_users ADD COLUMN age INT;</div>
+                    <button class="test-button" onclick="runTest('ddl', 1)">Run Test</button>
+                    <div class="result" id="ddl-result-1"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 3: RENAME TABLE</strong>
+                    <div class="test-query">RENAME TABLE test_users TO users_renamed;</div>
+                    <button class="test-button" onclick="runTest('ddl', 2)">Run Test</button>
+                    <div class="result" id="ddl-result-2"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 4: DROP TABLE</strong>
+                    <div class="test-query">DROP TABLE users_renamed;</div>
+                    <button class="test-button" onclick="runTest('ddl', 3)">Run Test</button>
+                    <div class="result" id="ddl-result-3"></div>
+                </div>
+
+                <button class="test-button test-all-button" onclick="runAllTests('ddl')">▶ Run All DDL Tests</button>
+            </div>
+        </div>
+
+        <!-- DML Tests -->
+        <div class="test-section">
+            <div class="test-header">
+                <span>✏️ DML Commands (Data Manipulation Language)</span>
+                <span class="status-badge pending" id="dml-status">Pending</span>
+            </div>
+            <div class="test-body">
+                <div class="test-item">
+                    <strong>Test 1: CREATE TABLE (Setup)</strong>
+                    <div class="test-query">CREATE TABLE products (id INT PRIMARY KEY, name VARCHAR(100), price DECIMAL(10,2));</div>
+                    <button class="test-button" onclick="runTest('dml', 0)">Run Test</button>
+                    <div class="result" id="dml-result-0"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 2: INSERT</strong>
+                    <div class="test-query">INSERT INTO products (id, name, price) VALUES (1, 'Laptop', 999.99);</div>
+                    <button class="test-button" onclick="runTest('dml', 1)">Run Test</button>
+                    <div class="result" id="dml-result-1"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 3: UPDATE</strong>
+                    <div class="test-query">UPDATE products SET price = 899.99 WHERE id = 1;</div>
+                    <button class="test-button" onclick="runTest('dml', 2)">Run Test</button>
+                    <div class="result" id="dml-result-2"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 4: DELETE</strong>
+                    <div class="test-query">DELETE FROM products WHERE id = 1;</div>
+                    <button class="test-button" onclick="runTest('dml', 3)">Run Test</button>
+                    <div class="result" id="dml-result-3"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 5: DROP TABLE (Cleanup)</strong>
+                    <div class="test-query">DROP TABLE products;</div>
+                    <button class="test-button" onclick="runTest('dml', 4)">Run Test</button>
+                    <div class="result" id="dml-result-4"></div>
+                </div>
+
+                <button class="test-button test-all-button" onclick="runAllTests('dml')">▶ Run All DML Tests</button>
+            </div>
+        </div>
+
+        <!-- DQL Tests -->
+        <div class="test-section">
+            <div class="test-header">
+                <span>🔍 DQL Commands (Data Query Language)</span>
+                <span class="status-badge pending" id="dql-status">Pending</span>
+            </div>
+            <div class="test-body">
+                <div class="test-item">
+                    <strong>Test 1: CREATE & INSERT (Setup)</strong>
+                    <div class="test-query">CREATE TABLE employees (id INT, name VARCHAR(50), department VARCHAR(50), salary DECIMAL(10,2));</div>
+                    <button class="test-button" onclick="runTest('dql', 0)">Run Test</button>
+                    <div class="result" id="dql-result-0"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 2: INSERT Multiple Rows</strong>
+                    <div class="test-query">INSERT INTO employees VALUES (1, 'John', 'IT', 50000), (2, 'Jane', 'HR', 45000), (3, 'Bob', 'IT', 55000);</div>
+                    <button class="test-button" onclick="runTest('dql', 1)">Run Test</button>
+                    <div class="result" id="dql-result-1"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 3: SELECT *</strong>
+                    <div class="test-query">SELECT * FROM employees;</div>
+                    <button class="test-button" onclick="runTest('dql', 2)">Run Test</button>
+                    <div class="result" id="dql-result-2"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 4: SELECT with WHERE</strong>
+                    <div class="test-query">SELECT * FROM employees WHERE department = 'IT';</div>
+                    <button class="test-button" onclick="runTest('dql', 3)">Run Test</button>
+                    <div class="result" id="dql-result-3"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 5: SELECT with COUNT</strong>
+                    <div class="test-query">SELECT COUNT(*) as total FROM employees;</div>
+                    <button class="test-button" onclick="runTest('dql', 4)">Run Test</button>
+                    <div class="result" id="dql-result-4"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 6: DROP TABLE (Cleanup)</strong>
+                    <div class="test-query">DROP TABLE employees;</div>
+                    <button class="test-button" onclick="runTest('dql', 5)">Run Test</button>
+                    <div class="result" id="dql-result-5"></div>
+                </div>
+
+                <button class="test-button test-all-button" onclick="runAllTests('dql')">▶ Run All DQL Tests</button>
+            </div>
+        </div>
+
+        <!-- Other Commands Tests -->
+        <div class="test-section">
+            <div class="test-header">
+                <span>🔧 Other SQL Commands</span>
+                <span class="status-badge pending" id="other-status">Pending</span>
+            </div>
+            <div class="test-body">
+                <div class="test-item">
+                    <strong>Test 1: CREATE TABLE (Setup)</strong>
+                    <div class="test-query">CREATE TABLE test_table (id INT, data VARCHAR(50));</div>
+                    <button class="test-button" onclick="runTest('other', 0)">Run Test</button>
+                    <div class="result" id="other-result-0"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 2: TRUNCATE (converted to DELETE)</strong>
+                    <div class="test-query">TRUNCATE TABLE test_table;</div>
+                    <button class="test-button" onclick="runTest('other', 1)">Run Test</button>
+                    <div class="result" id="other-result-1"></div>
+                </div>
+
+                <div class="test-item">
+                    <strong>Test 3: DROP TABLE (Cleanup)</strong>
+                    <div class="test-query">DROP TABLE test_table;</div>
+                    <button class="test-button" onclick="runTest('other', 2)">Run Test</button>
+                    <div class="result" id="other-result-2"></div>
+                </div>
+
+                <button class="test-button test-all-button" onclick="runAllTests('other')">▶ Run All Other Tests</button>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <button class="test-button test-all-button" style="font-size: 1.1em; padding: 15px 40px;" onclick="runAllTestSuites()">
+                🚀 Run Complete Test Suite
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const tests = {
+            ddl: [
+                "CREATE TABLE test_users (id INT PRIMARY KEY, name VARCHAR(50), email VARCHAR(100));",
+                "ALTER TABLE test_users ADD COLUMN age INT;",
+                "RENAME TABLE test_users TO users_renamed;",
+                "DROP TABLE users_renamed;"
+            ],
+            dml: [
+                "CREATE TABLE products (id INT PRIMARY KEY, name VARCHAR(100), price DECIMAL(10,2));",
+                "INSERT INTO products (id, name, price) VALUES (1, 'Laptop', 999.99);",
+                "UPDATE products SET price = 899.99 WHERE id = 1;",
+                "DELETE FROM products WHERE id = 1;",
+                "DROP TABLE products;"
+            ],
+            dql: [
+                "CREATE TABLE employees (id INT, name VARCHAR(50), department VARCHAR(50), salary DECIMAL(10,2));",
+                "INSERT INTO employees VALUES (1, 'John', 'IT', 50000), (2, 'Jane', 'HR', 45000), (3, 'Bob', 'IT', 55000);",
+                "SELECT * FROM employees;",
+                "SELECT * FROM employees WHERE department = 'IT';",
+                "SELECT COUNT(*) as total FROM employees;",
+                "DROP TABLE employees;"
+            ],
+            other: [
+                "CREATE TABLE test_table (id INT, data VARCHAR(50));",
+                "TRUNCATE TABLE test_table;",
+                "DROP TABLE test_table;"
+            ]
+        };
+
+        let testResults = {
+            ddl: [],
+            dml: [],
+            dql: [],
+            other: []
+        };
+
+        async function runTest(category, index) {
+            const resultDiv = document.getElementById(`${category}-result-${index}`);
+            resultDiv.className = 'result pending';
+            resultDiv.innerHTML = '<span class="spinner"></span> Running test...';
+
+            try {
+                const response = await fetch('/api/run_sql.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sql: tests[category][index] })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ <strong>Failed:</strong> ${data.error}`;
+                    testResults[category][index] = false;
+                } else {
+                    resultDiv.className = 'result success';
+                    let message = '✅ <strong>Success!</strong> ';
+                    if (data.type === 'result') {
+                        message += `Returned ${data.data.length} row(s)`;
+                    } else if (data.type === 'affected') {
+                        message += data.message || `${data.count} row(s) affected`;
+                    } else {
+                        message += data.message || 'Query executed successfully';
+                    }
+                    if (data.duration) {
+                        message += ` (${data.duration}ms)`;
+                    }
+                    resultDiv.innerHTML = message;
+                    testResults[category][index] = true;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ <strong>Error:</strong> ${error.message}`;
+                testResults[category][index] = false;
+            }
+
+            updateSummary();
+            updateCategoryStatus(category);
+        }
+
+        async function runAllTests(category) {
+            const statusBadge = document.getElementById(`${category}-status`);
+            statusBadge.className = 'status-badge running';
+            statusBadge.textContent = 'Running...';
+
+            for (let i = 0; i < tests[category].length; i++) {
+                await runTest(category, i);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Small delay between tests
+            }
+
+            updateCategoryStatus(category);
+        }
+
+        async function runAllTestSuites() {
+            for (const category of ['ddl', 'dml', 'dql', 'other']) {
+                await runAllTests(category);
+            }
+        }
+
+        function updateCategoryStatus(category) {
+            const statusBadge = document.getElementById(`${category}-status`);
+            const results = testResults[category];
+            
+            if (results.length === 0) {
+                statusBadge.className = 'status-badge pending';
+                statusBadge.textContent = 'Pending';
+                return;
+            }
+
+            const allPassed = results.every(r => r === true);
+            const anyFailed = results.some(r => r === false);
+
+            if (allPassed && results.length === tests[category].length) {
+                statusBadge.className = 'status-badge passed';
+                statusBadge.textContent = 'All Passed';
+            } else if (anyFailed) {
+                statusBadge.className = 'status-badge failed';
+                const passed = results.filter(r => r === true).length;
+                statusBadge.textContent = `${passed}/${tests[category].length} Passed`;
+            } else {
+                statusBadge.className = 'status-badge running';
+                statusBadge.textContent = 'Running...';
+            }
+        }
+
+        function updateSummary() {
+            let total = 0;
+            let passed = 0;
+            let failed = 0;
+
+            for (const category in testResults) {
+                for (const result of testResults[category]) {
+                    if (result !== undefined) {
+                        total++;
+                        if (result === true) passed++;
+                        if (result === false) failed++;
+                    }
+                }
+            }
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('passed-tests').textContent = passed;
+            document.getElementById('failed-tests').textContent = failed;
+        }
+
+        // Initialize summary
+        updateSummary();
+    </script>
+</body>
+</html>

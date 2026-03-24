@@ -1,0 +1,29 @@
+# robots.txt for SQLCompiler.shop
+# https://sqlcompiler.shop/robots.txt
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /app/admin/
+Disallow: /config/
+Disallow: /tests/
+Disallow: /debug_reset_token.php
+Disallow: /check_db_schema.php
+Disallow: /migration_add_reset_token.php
+Disallow: /optimize_db.php
+Disallow: /test_register.php
+
+# Disallow user-specific dynamic pages (not indexable)
+Disallow: /editor.php
+Disallow: /dashboard.php
+Disallow: /history.php
+Disallow: /logout.php
+
+# Crawl-delay for Bingbot (be kind to server)
+User-agent: Bingbot
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://sqlcompiler.shop/sitemap.xml
